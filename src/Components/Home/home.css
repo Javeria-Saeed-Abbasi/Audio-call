@@ -1,0 +1,252 @@
+.members {
+    height: 569px;
+    background-color: #f9f9f9;
+    overflow-y: scroll;
+    width: 33.33333333%;
+    left: 0;
+  }
+  .members .card {
+    background-color: transparent;
+    border: none;
+  }
+  .input-group {
+    background-color: #8d8d8d24;
+  }
+  .input-group-text {
+    background-color: transparent;
+    border: transparent;
+    border-radius: 0;
+  }
+  .input-group-text svg {
+    color: grey;
+  }
+  .input-group input[type="text"] {
+    background-color: transparent;
+    border: transparent;
+  }
+  .input-group input:focus {
+    outline: none;
+    border: none;
+    box-shadow: none;
+  }
+  .list-group-item li {
+    list-style-type: none;
+  }
+  li .avatar-img {
+    width: 50px;
+    height: 50px;
+  }
+  
+  li .avtar-img2 {
+      width: 60px;
+      height: 60px;
+  }
+  li img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+  }
+  li a {
+    font-family: Arial;
+    color: black;
+    font-weight: 100;
+  }
+  li a:hover {
+    color: black;
+  }
+  li .user-name,
+  li .online {
+    padding-top: 0.75rem;
+    padding-left: 1rem;
+  }
+  li .online svg {
+    font-size: 1rem;
+  }
+  .online .feature1 {
+    padding: 1rem;
+  }
+  .online .feature1 button,
+  .online .feature2 button {
+    background: none;
+    color: black;
+    padding: 0;
+    border: none;
+  }
+  .online .feature1 button:focus,
+  .online .feature2 button:focus {
+    outline: none;
+    border: none;
+    box-shadow: none;
+  }
+  .online .feature1 button:active,
+  .online .feature2 button:active {
+    outline: none;
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
+    color: grey;
+  }
+  .user-chat {
+    width: 65.7%;
+  }
+  .user {
+    margin-top: -1rem;
+  }
+  .user-chat .card {
+    background-color: black;
+    color: white;
+    border: none;
+  }
+  .chat-box {
+    background-color: white;
+    overflow-y: scroll;
+    /* height: 400px; */
+    height: 467px;
+  }
+  .chat-box .user1 {
+    text-align: right;
+  }
+  .chat-box .user2 {
+    text-align: left;
+  }
+  .text-area {
+    position: fixed;
+    bottom: -15px;
+    width: 66.66%;
+    left: 452px;
+  }
+  .text-area .input-group .form-control {
+    background-color: #eeeeee;
+    border: transparent;
+    resize: none;
+  }
+  .text-area .input-group .form-control::placeholder {
+    padding-top: 10px;
+  }
+  .input-group .form-control:focus {
+    outline: none;
+    border: none;
+    box-shadow: none;
+  }
+  .text-area .input-group-text button {
+    background: transparent;
+    border: none;
+  }
+  .text-area .input-group-text button:focus {
+    outline: none;
+    border: none;
+    box-shadow: none;
+  }
+  .user .left-btn{
+  background-color: transparent;
+  border: none;
+  }
+  .user .left-btn svg{
+    color: black;
+    font-size: 1.2rem;
+    }
+    
+  .video-container {
+      display: flex;
+      /* grid-template-columns: 1fr 1fr; */
+      justify-content: between;
+      align-items: center;
+      /* margin-top: 10rem;*/
+      /* margin-left: 10rem;  */
+  }
+  .modal-content {
+    width: 100%!important;
+  }
+  .my-video{
+    width:200px;
+    height: 200px;
+  }
+  .user-video{
+    width:200px;
+    height: 200px;
+    margin-left: 3rem;
+  }
+  @media (min-width:1366px) {
+      .members {
+          height: 100%;
+      }
+      .text-area {
+          width: 67.66%;
+      }
+      .chat-box {
+          height: 609px;
+      }
+      li .avtar-img2 {
+          width: 60px;
+          height: 60px;
+      }
+    }
+    @media (min-width:1600px) {
+      .text-area {
+          left: 531px;
+      }
+      .chat-box {
+          height: 892px;
+      }
+      li .avtar-img2 {
+          width: 60px;
+          height: 60px;
+      }
+    }
+    @media (min-width: 1920px){
+      .text-area {
+          left: 638px;
+          width: 67%;
+      }
+      li .avtar-img2 {
+          width: 60px;
+          height: 60px;
+      }
+  }
+  @media (min-width: 2560px){
+      .chat-box {
+          height: 1438px;
+      }
+  .text-area {
+      left: 845px;
+      width: 67%;
+  }
+  li .avtar-img2 {
+      width: 60px;
+      height: 60px;
+  }
+  }
+  @media (max-width: 768px){
+     .members{
+      width: unset;
+     }
+     .user-chat{
+      width: unset;
+      left: 282px;
+     }
+     li .avtar-img2{
+      width: 150px;
+      height: 60px;
+  }
+  }
+  @media (max-width: 414px){
+      .members {
+          width: 100%;
+      }
+      /* .user-chat{
+     display: none;
+      } */
+      .user-chat {
+          width: unset;
+          left: 0;
+      }
+      .text-area {
+          width: 100%;
+          left: 0;
+      }
+      .online .feature2{
+        padding-right: 1rem;
+      }
+      
+   }
