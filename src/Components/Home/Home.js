@@ -36,6 +36,8 @@ const Home = () => {
   const [data, setData] = useState({ name: 'User', img: avatar1 })
   const [hideShow, setHideShow] = useState(false)
   // Modal video  States
+
+  const [invitation, setInvitation] = useState('')
   const [showModal, setShowModal] = useState(false)
   const handleClose = () => setShowModal(false)
   const handleShow = () => setShowModal(true)
@@ -59,15 +61,17 @@ const Home = () => {
   // var connectedSession = null
 
   function showAcceptDeclineButtons() {
-    document.getElementById('accept').style.display = 'inline-block'
-    document.getElementById('decline').style.display = 'inline-block'
+    setHideShow(true)
+    // document.getElementById('accept').style.display = 'inline-block'
+    // document.getElementById('decline').style.display = 'inline-block'
   }
 
   function hideAcceptDeclineButtons() {
-    $('#accept').off('click')
-    $('#decline').off('click')
-    document.getElementById('accept').style.display = 'none'
-    document.getElementById('decline').style.display = 'none'
+    setHideShow(false)
+    // $('#accept').off('click')
+    // $('#decline').off('click')
+    // document.getElementById('accept').style.display = 'none'
+    // document.getElementById('decline').style.display = 'none'
   }
 
   function selectPhonebookItem(idItem) {
@@ -93,8 +97,8 @@ const Home = () => {
           })
           .on('incomingCall', function (invitation) {
             console.log('incoming callll')
-            let textAdd = (document.getElementById('incomingCall').innerHTML =
-              'incoming call')
+            // let textAdd = (document.getElementById('incomingCall').innerHTML =
+            //   'incoming call')
 
             callInvitationProcess(invitation)
           })
@@ -244,6 +248,7 @@ const Home = () => {
       })
   }
   function callInvitationProcess(invitation) {
+    setInvitation(invitation)
     invitation.on('statusChange', function (statusChangeInfo) {
       console.error('statusChangeInfo :', statusChangeInfo)
 
@@ -1039,6 +1044,7 @@ const Home = () => {
                   onClick={() => {
                     setTimeout(() => {
                       console.log('htta', connectedSession)
+                      alert('hi')
                       var contact = connectedSession.getOrCreateContact(
                         $('#number').val(),
                       )
@@ -1074,7 +1080,36 @@ const Home = () => {
 
             {hideShow ? (
               <>
-                <button type="button" id="accept" className="btn btn-success">
+                <button
+                  type="button"
+                  id="accept"
+                  onClick={() => {
+                    console.log('hhi')
+                    console.log(invitation)
+                    if (invitation.getCallType() == 'audio') {
+                      //When receiving an audio call
+                      var answerOptions = {
+                        mediaTypeForIncomingCall: 'AUDIO', //Answering with audio only.
+                      }
+                      invitation
+                        .accept(null, answerOptions)
+                        .then(function (call) {
+                          setCallListeners(call)
+                          addHangupButton(call.getId())
+                        })
+                    } else {
+                      invitation
+                        .accept() //Answering with audio and video.
+                        .then(function (call) {
+                          setCallListeners(call)
+                          addHangupButton(call.getId())
+                        })
+                    }
+                    // Hide accept/decline buttons
+                    hideAcceptDeclineButtons()
+                  }}
+                  className="btn btn-success"
+                >
                   Accept call
                 </button>
                 <button type="button" id="decline" className="btn btn-danger">
@@ -1085,9 +1120,9 @@ const Home = () => {
             <div className="row position:absolute">
               <div id="hangupButtons"></div>
             </div>
-            <div className="row position:absolute">
+            {/* <div className="row position:absolute">
               <div id="incomingCall"></div>
-            </div>
+            </div> */}
             <div className="row position:absolute">
               <div id="streamButtons"></div>
             </div>
