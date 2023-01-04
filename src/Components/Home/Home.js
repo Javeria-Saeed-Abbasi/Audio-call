@@ -34,6 +34,7 @@ const Home = () => {
   const [id, setId] = useState('')
   const [name, setName] = useState('')
   const [data, setData] = useState({ name: 'User', img: avatar1 })
+  const [hideShow, setHideShow] = useState(false)
   // Modal video  States
   const [showModal, setShowModal] = useState(false)
   const handleClose = () => setShowModal(false)
@@ -63,8 +64,8 @@ const Home = () => {
   }
 
   function hideAcceptDeclineButtons() {
-    $('#accept').unbind('click')
-    $('#decline').unbind('click')
+    $('#accept').off('click')
+    $('#decline').off('click')
     document.getElementById('accept').style.display = 'none'
     document.getElementById('decline').style.display = 'none'
   }
@@ -91,6 +92,10 @@ const Home = () => {
             console.log(session, 'session')
           })
           .on('incomingCall', function (invitation) {
+            console.log('incoming callll')
+            let textAdd = (document.getElementById('incomingCall').innerHTML =
+              'incoming call')
+
             callInvitationProcess(invitation)
           })
           .on('incomingScreenSharingCall', function (call) {
@@ -248,18 +253,21 @@ const Home = () => {
         hideAcceptDeclineButtons()
       }
     })
-
-    //===============================================
+    // let acceptBtn = document.getElementById('accept')
+    // console.log(btn, 'btn') //===============================================
     // ACCEPT OR DECLINE
     //===============================================
     // Display accept/decline buttons
     showAcceptDeclineButtons()
 
     // Add listeners
-    $('#accept').click(function () {
+    // acceptBtn.onclick(() => {})
+    $('#accept').on('click', function () {
       //==============================
       // ACCEPT CALL INVITATION
       //==============================
+
+      console.log('hhi')
       if (invitation.getCallType() == 'audio') {
         //When receiving an audio call
         var answerOptions = {
@@ -281,12 +289,43 @@ const Home = () => {
       hideAcceptDeclineButtons()
     })
 
-    $('#decline').click(function () {
+    $('#decline').on('click', function () {
       // Decline call invitation
       invitation.decline()
       // Hide accept/decline buttons
       hideAcceptDeclineButtons()
     })
+
+    //   acceptBtn.onclick(() => {
+    //   if (invitation.getCallType() == 'audio') {
+    //     //When receiving an audio call
+    //     var answerOptions = {
+    //       mediaTypeForIncomingCall: 'AUDIO', //Answering with audio only.
+    //     }
+    //     invitation.accept(null, answerOptions).then(function (call) {
+    //       setCallListeners(call)
+    //       addHangupButton(call.getId())
+    //     })
+    //   } else {
+    //     invitation
+    //       .accept() //Answering with audio and video.
+    //       .then(function (call) {
+    //         setCallListeners(call)
+    //         addHangupButton(call.getId())
+    //       })
+    //   }
+    //   // Hide accept/decline buttons
+    //   hideAcceptDeclineButtons()
+    // })
+    // let declineBtn = document.getElementById('decline')
+    // console.log(declineBtn)
+
+    // declineBtn.onclick(() => {
+    //   console.log('decline')
+    //   invitation.decline()
+    //   // Hide accept/decline buttons
+    //   hideAcceptDeclineButtons()
+    // })
   }
 
   function updateAddressBook(session) {
@@ -1033,15 +1072,21 @@ const Home = () => {
               </span>
             </div>
 
-            <button type="button" id="accept" className="btn btn-success">
-              Accept call
-            </button>
-            <button type="button" id="decline" className="btn btn-danger">
-              Decline call
-            </button>
-
+            {hideShow ? (
+              <>
+                <button type="button" id="accept" className="btn btn-success">
+                  Accept call
+                </button>
+                <button type="button" id="decline" className="btn btn-danger">
+                  Decline call
+                </button>
+              </>
+            ) : null}
             <div className="row position:absolute">
               <div id="hangupButtons"></div>
+            </div>
+            <div className="row position:absolute">
+              <div id="incomingCall"></div>
             </div>
             <div className="row position:absolute">
               <div id="streamButtons"></div>
