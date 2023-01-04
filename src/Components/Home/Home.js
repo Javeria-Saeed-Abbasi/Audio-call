@@ -28,6 +28,7 @@ import io from 'socket.io-client'
 import Modal from 'react-bootstrap/Modal'
 import apiRTC, { UserAgent } from '@apirtc/apirtc'
 import $ from 'jquery'
+
 const Home = () => {
   const [show, setShow] = useState(false)
   const [id, setId] = useState('')
@@ -37,6 +38,7 @@ const Home = () => {
   const [showModal, setShowModal] = useState(false)
   const handleClose = () => setShowModal(false)
   const handleShow = () => setShowModal(true)
+  const [connectedSession, setConnectedSession] = useState('')
   // Modal audio States
   const [showModal2, setShowModal2] = useState(false)
   const handleClose2 = () => setShowModal2(false)
@@ -53,7 +55,7 @@ const Home = () => {
 
   apiRTC.setLogLevel(10)
 
-  var connectedSession = null
+  // var connectedSession = null
 
   function showAcceptDeclineButtons() {
     document.getElementById('accept').style.display = 'inline-block'
@@ -85,7 +87,8 @@ const Home = () => {
             console.log(updatedContacts)
             setId(session.id)
             updateAddressBook(session)
-            connectedSession = session
+            setConnectedSession(session)
+            console.log(session, 'session')
           })
           .on('incomingCall', function (invitation) {
             callInvitationProcess(invitation)
@@ -355,6 +358,8 @@ const Home = () => {
 
   //Audio Call establishment
   $('#callAudio').click(function () {
+    console.log('hi', connectedSession)
+
     var contact = connectedSession.getOrCreateContact($('#number').val())
     var callOptions = {
       mediaTypeForOutgoingCall: 'AUDIO',
@@ -992,6 +997,22 @@ const Home = () => {
                   type="button"
                   id="callAudio"
                   className="btn btn-success"
+                  onClick={() => {
+                    setTimeout(() => {
+                      console.log('htta', connectedSession)
+                      var contact = connectedSession.getOrCreateContact(
+                        $('#number').val(),
+                      )
+                      var call = contact.call()
+                      if (call !== null) {
+                        setCallListeners(call)
+                        addHangupButton(call.getId())
+                      } else {
+                        console.warn('Cannot establish call')
+                      }
+                      console.log('hi')
+                    }, 1000)
+                  }}
                 >
                   <BsTelephone />
                 </button>
