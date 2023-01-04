@@ -36,7 +36,7 @@ const Home = () => {
   const [data, setData] = useState({ name: 'User', img: avatar1 })
   const [hideShow, setHideShow] = useState(false)
   // Modal video  States
-
+  const [callId, setCallId] = useState('')
   const [invitation, setInvitation] = useState('')
   const [showModal, setShowModal] = useState(false)
   const handleClose = () => setShowModal(false)
@@ -376,14 +376,15 @@ const Home = () => {
     stream.release()
   }
 
-  function addHangupButton(callId) {
+  function addHangupButton(callId1) {
+    setCallId(callId1)
     $('#hangupButtons').append(
       '<input id="hangup-' +
-        callId +
+        callId1 +
         '" class="btn btn-danger" type="button" value="Hangup-' +
-        callId +
+        callId1 +
         '" onclick="hangupCall(' +
-        callId +
+        callId1 +
         ')" />',
     )
   }
@@ -1112,13 +1113,32 @@ const Home = () => {
                 >
                   Accept call
                 </button>
-                <button type="button" id="decline" className="btn btn-danger">
+                <button
+                  type="button"
+                  id="decline"
+                  onClick={() => {
+                    invitation.decline()
+                    // Hide accept/decline buttons
+                    hideAcceptDeclineButtons()
+                  }}
+                  className="btn btn-danger"
+                >
                   Decline call
                 </button>
               </>
             ) : null}
             <div className="row position:absolute">
-              <div id="hangupButtons"></div>
+              <div
+                id="hangupButtons"
+                onClick={() => {
+                  console.log('hangupCall :', callId)
+                  $('#hangup-' + callId).remove()
+                  //Getting call from ApiRTC call lists
+                  var call = connectedSession.getCall(callId)
+                  console.log(call, 'calluthai')
+                  call.hangUp()
+                }}
+              ></div>
             </div>
             {/* <div className="row position:absolute">
               <div id="incomingCall"></div>
