@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from 'react'
 import {
   Button,
   ButtonGroup,
@@ -9,389 +9,408 @@ import {
   InputGroup,
   ListGroupItem,
   Row,
-} from "react-bootstrap";
-import CardHeader from "react-bootstrap/esm/CardHeader";
-import avatar1 from "../../images/avtar3.jpg";
-import avatar2 from "../../images/avatar4.jpg";
-import "../Home/home.css";
-import { RxDotFilled } from "react-icons/rx";
-import { FaArrowAltCircleLeft, FaDesktop, FaSearch } from "react-icons/fa";
-import { BsTelephone } from "react-icons/bs";
-import { BsCameraVideo, BsPencilSquare } from "react-icons/bs";
-import { GrSend } from "react-icons/gr";
+} from 'react-bootstrap'
+import CardHeader from 'react-bootstrap/esm/CardHeader'
+import avatar1 from '../../images/avtar3.jpg'
+import avatar2 from '../../images/avatar4.jpg'
+import '../Home/home.css'
+import { RxDotFilled } from 'react-icons/rx'
+import { FaArrowAltCircleLeft, FaDesktop, FaSearch } from 'react-icons/fa'
+import { BsTelephone } from 'react-icons/bs'
+import { BsCameraVideo, BsPencilSquare } from 'react-icons/bs'
+import { GrSend } from 'react-icons/gr'
 // import Chat from "../Conversation/Conversation";
 // import Members from "../Members/Members";
-import { Link } from "react-router-dom";
-import { CopyToClipboard } from "react-copy-to-clipboard";
+import { Link } from 'react-router-dom'
+import { CopyToClipboard } from 'react-copy-to-clipboard'
 // import Peer from "simple-peer";
-import io from "socket.io-client";
-import Modal from "react-bootstrap/Modal";
-import {UserAgent} from '@apirtc/apirtc';
-import $ from "jquery";
+import io from 'socket.io-client'
+import Modal from 'react-bootstrap/Modal'
+import apiRTC, { UserAgent } from '@apirtc/apirtc'
+import $ from 'jquery'
 const Home = () => {
-    const [show, setShow] = useState(false);
-    const [id, setId] = useState('');
-    const [name, setName] = useState('');
-    const [data, setData] = useState({ name: "User", img: avatar1 });
+  const [show, setShow] = useState(false)
+  const [id, setId] = useState('')
+  const [name, setName] = useState('')
+  const [data, setData] = useState({ name: 'User', img: avatar1 })
   // Modal video  States
-  const [showModal, setShowModal] = useState(false);
-  const handleClose = () => setShowModal(false);
-  const handleShow = () => setShowModal(true);
+  const [showModal, setShowModal] = useState(false)
+  const handleClose = () => setShowModal(false)
+  const handleShow = () => setShowModal(true)
   // Modal audio States
-  const [showModal2, setShowModal2] = useState(false);
-  const handleClose2 = () => setShowModal2(false);
-  const handleShow2 = () => {setShowModal2(true);
-  };
-  
+  const [showModal2, setShowModal2] = useState(false)
+  const handleClose2 = () => setShowModal2(false)
+  const handleShow2 = () => {
+    setShowModal2(true)
+  }
+
   const saveData = (value) => {
-    setData(value);
-    console.log(value);
-  };
-  let w = window.innerWidth;
-  console.log(w);
-//   Audio call WEB RTC
-// var currentSessionId;
+    setData(value)
+    console.log(value)
+  }
+  let w = window.innerWidth
+  console.log(w)
 
-// if(localStorage.getItem('session_id')){
-//     currentSessionId = localStorage.getItem('session_id');
-// } else {
-//     localStorage.setItem('session_id', id);
-//     currentSessionId = localStorage.getItem('session_id');
-// }
-// apiRTC.setLogLevel(10);
+  apiRTC.setLogLevel(10)
 
-var connectedSession = null;
+  var connectedSession = null
 
-function showAcceptDeclineButtons() {
-    document.getElementById('accept').style.display = 'inline-block';
-    document.getElementById('decline').style.display = 'inline-block';
-}
+  function showAcceptDeclineButtons() {
+    document.getElementById('accept').style.display = 'inline-block'
+    document.getElementById('decline').style.display = 'inline-block'
+  }
 
-function hideAcceptDeclineButtons() {
-    $("#accept").bind( "click" );
-    $("#decline").bind( "click" );
-    document.getElementById('accept').style.display = 'none';
-    document.getElementById('decline').style.display = 'none';
-}
+  function hideAcceptDeclineButtons() {
+    $('#accept').unbind('click')
+    $('#decline').unbind('click')
+    document.getElementById('accept').style.display = 'none'
+    document.getElementById('decline').style.display = 'none'
+  }
 
-function selectPhonebookItem(idItem) {
-    $("#number").val(idItem);
-}
+  function selectPhonebookItem(idItem) {
+    $('#number').val(idItem)
+  }
 
-function updateAddressBook() {
-    console.log("updateAddressBook");
+  const userAgent = new UserAgent({
+    uri: 'apiKey:' + 'd0cd993e33f71151e3ebf7a18154f9bf',
+  })
 
-    //var contactListArray = connectedSession.getContactsArray(),
-    var contactListArray = connectedSession.getOnlineContactsArray(), //Get online contacts
-        i = 0;
+  useEffect(() => {
+    userAgent
+      .register()
+      .then((session) => {
+        console.log(session, 'id')
+        session
+          .on('contactListUpdate', (updatedContacts) => {
+            console.log(updatedContacts)
+            setId(session.id)
+            updateAddressBook(session)
+            connectedSession = session
+          })
+          .on('incomingCall', function (invitation) {
+            callInvitationProcess(invitation)
+          })
+          .on('incomingScreenSharingCall', function (call) {
+            //When client receives an screenSharing call from another user
+            console.log('screenSharing received from :', call.getContact().id)
+            setCallListeners(call)
+            addHangupButton(call.getId())
+          })
+          .on('incomingScreenSharingCallInvitation', function (invitation) {
+            //When client receives an screenSharing call from another user
+            console.log('incomingScreenSharingCallInvitation ')
+            callInvitationProcess(invitation)
+          })
+      })
+      .catch(function (error) {
+        // error
+        console.error('User agent registration failed', error)
+      })
+  }, [])
 
-    console.log("contactListArray :", contactListArray);
-
-    //Cleaning addressBook list
-    $("#addressBookDropDown").empty();
-
-    for (i = 0; i < contactListArray.length; i += 1) {
-        var user = contactListArray[i];
-        console.log("userId :", user.getId());
-        //Checking if connectedUser is not current user befire adding in addressBook list
-        console.log(ua.session.apiCCId, 'api')
-        if (user.getId() !== ua.session.apiCCId) {
-          console.log('here')
-            $("#addressBookDropDown").append('<li><a href="#" onclick="selectPhonebookItem(' + user.getId() + ')">' + user.getId() + '</a></li>');
-        }
-    }
-}
-
-// //Function to add media stream in Div
-function addStreamInDiv(stream, divId, mediaEltId, style, muted) {
-
-    var streamIsVideo = stream.hasVideo();
-    console.error('addStreamInDiv - hasVideo? ' + streamIsVideo);
+  function addStreamInDiv(stream, divId, mediaEltId, style, muted) {
+    var streamIsVideo = stream.hasVideo()
+    console.error('addStreamInDiv - hasVideo? ' + streamIsVideo)
 
     var mediaElt = null,
-        divElement = null,
-        funcFixIoS = null,
-        promise = null;
+      divElement = null,
+      funcFixIoS = null,
+      promise = null
 
     if (streamIsVideo === 'false') {
-        mediaElt = document.createElement("audio");
+      mediaElt = document.createElement('audio')
     } else {
-        mediaElt = document.createElement("video");
+      mediaElt = document.createElement('video')
     }
 
-    mediaElt.id = mediaEltId;
-    mediaElt.autoplay = true;
-    mediaElt.muted = muted;
-    mediaElt.style.width = style.width;
-    mediaElt.style.height = style.height;
+    mediaElt.id = mediaEltId
+    mediaElt.autoplay = true
+    mediaElt.muted = muted
+    mediaElt.style.width = style.width
+    mediaElt.style.height = style.height
 
     funcFixIoS = function () {
-        var promise = mediaElt.play();
+      var promise = mediaElt.play()
 
-        console.log('funcFixIoS');
-        if (promise !== undefined) {
-            promise.then(function () {
-                // Autoplay started!
-                console.log('Autoplay started');
-                console.error('Audio is now activated');
-                document.removeEventListener('touchstart', funcFixIoS);
+      console.log('funcFixIoS')
+      if (promise !== undefined) {
+        promise
+          .then(function () {
+            // Autoplay started!
+            console.log('Autoplay started')
+            console.error('Audio is now activated')
+            document.removeEventListener('touchstart', funcFixIoS)
 
-                $('#status').empty().append('iOS / Safari : Audio is now activated');
+            $('#status').empty().append('iOS / Safari : Audio is now activated')
+          })
+          .catch(function (error) {
+            // Autoplay was prevented.
+            console.error('Autoplay was prevented')
+          })
+      }
+    }
 
-            }).catch(function (error) {
-                // Autoplay was prevented.
-                console.error('Autoplay was prevented');
-            });
-        }
-    };
+    stream.attachToElement(mediaElt)
 
-    stream.attachToElement(mediaElt);
-
-    divElement = document.getElementById(divId);
-    divElement.appendChild(mediaElt);
-    promise = mediaElt.play();
+    divElement = document.getElementById(divId)
+    divElement.appendChild(mediaElt)
+    promise = mediaElt.play()
 
     if (promise !== undefined) {
-        promise.then(function () {
-            // Autoplay started!
-            console.log('Autoplay started');
-        }).catch(function (error) {
-            // Autoplay was prevented.
-            if (ua.osName === "iOS") {
-                console.info('iOS : Autoplay was prevented, activating touch event to start media play');
-                //Show a UI element to let the user manually start playback
+      promise
+        .then(function () {
+          // Autoplay started!
+          console.log('Autoplay started')
+        })
+        .catch(function (error) {
+          // Autoplay was prevented.
+          if (apiRTC.osName === 'iOS') {
+            console.info(
+              'iOS : Autoplay was prevented, activating touch event to start media play',
+            )
+            //Show a UI element to let the user manually start playback
 
-                //In our sample, we display a modal to inform user and use touchstart event to launch "play()"
-                document.addEventListener('touchstart',  funcFixIoS);
-                console.error('WARNING : Audio autoplay was prevented by iOS, touch screen to activate audio');
-                $('#status').empty().append('WARNING : iOS / Safari : Audio autoplay was prevented by iOS, touch screen to activate audio');
-            } else {
-                console.error('Autoplay was prevented');
-            }
-        });
+            //In our sample, we display a modal to inform user and use touchstart event to launch "play()"
+            document.addEventListener('touchstart', funcFixIoS)
+            console.error(
+              'WARNING : Audio autoplay was prevented by iOS, touch screen to activate audio',
+            )
+            $('#status')
+              .empty()
+              .append(
+                'WARNING : iOS / Safari : Audio autoplay was prevented by iOS, touch screen to activate audio',
+              )
+          } else {
+            console.error('Autoplay was prevented')
+          }
+        })
     }
-}
-
-function setCallListeners(call) {
+  }
+  function setCallListeners(call) {
     call
-        .on("localStreamAvailable", function (stream) {
-            console.log('localStreamAvailable');
-            //document.getElementById('local-media').remove();
-            addStreamInDiv(stream, 'local-container', 'local-media-' + stream.getId(), {width : "160px", height : "120px"}, true);
-            stream
-                .on("stopped", function () { //When client receives an screenSharing call from another user
-                    console.error("Stream stopped");
-                    $('#local-media-' + stream.getId()).remove();
-                });
+      .on('localStreamAvailable', function (stream) {
+        console.log('localStreamAvailable')
+        //document.getElementById('local-media').remove();
+        addStreamInDiv(
+          stream,
+          'local-container',
+          'local-media-' + stream.getId(),
+          { width: '160px', height: '120px' },
+          true,
+        )
+        stream.on('stopped', function () {
+          //When client receives an screenSharing call from another user
+          console.error('Stream stopped')
+          $('#local-media-' + stream.getId()).remove()
         })
-        .on("streamAdded", function (stream) {
-            console.log('stream :', stream);
-            addStreamInDiv(stream, 'remote-container', 'remote-media-' + stream.getId(), {width : "640px", height : "480px"}, false);
-        })
-        .on('streamRemoved', function (stream) {
-            // Remove media element
-            document.getElementById('remote-media-' + stream.getId()).remove();
-        })
-        .on('userMediaError', function (e) {
-            console.log('userMediaError detected : ', e);
-            console.log('userMediaError detected with error : ', e.error);
+      })
+      .on('streamAdded', function (stream) {
+        console.log('stream :', stream)
+        addStreamInDiv(
+          stream,
+          'remote-container',
+          'remote-media-' + stream.getId(),
+          { width: '640px', height: '480px' },
+          false,
+        )
+      })
+      .on('streamRemoved', function (stream) {
+        // Remove media element
+        document.getElementById('remote-media-' + stream.getId()).remove()
+      })
+      .on('userMediaError', function (e) {
+        console.log('userMediaError detected : ', e)
+        console.log('userMediaError detected with error : ', e.error)
 
-            //Checking if tryAudioCallActivated
-            if (e.tryAudioCallActivated === false) {
-                $('#hangup-' + call.getId()).remove();
-            }
-        })
-        .on('desktopCapture', function (e) {
-            console.log('desktopCapture event : ', e);
-            $('#hangup-' + call.getId()).remove();
-        })
-        .on('hangup', function () {
-            $('#hangup-' + call.getId()).remove();
-        });
-}
-
-function callInvitationProcess(invitation) {
-
-    invitation.on("statusChange", function (statusChangeInfo) {
-        console.error('statusChangeInfo :', statusChangeInfo);
-
-        if (statusChangeInfo.status === ua.INVITATION_STATUS_EXPIRED) {
-
-            console.error('INVITATION_STATUS_EXPIRED');
-            // Hide accept/decline buttons
-            hideAcceptDeclineButtons();
+        //Checking if tryAudioCallActivated
+        if (e.tryAudioCallActivated === false) {
+          $('#hangup-' + call.getId()).remove()
         }
-    });
+      })
+      .on('desktopCapture', function (e) {
+        console.log('desktopCapture event : ', e)
+        $('#hangup-' + call.getId()).remove()
+      })
+      .on('hangup', function () {
+        $('#hangup-' + call.getId()).remove()
+      })
+  }
+  function callInvitationProcess(invitation) {
+    invitation.on('statusChange', function (statusChangeInfo) {
+      console.error('statusChangeInfo :', statusChangeInfo)
+
+      if (statusChangeInfo.status === apiRTC.INVITATION_STATUS_EXPIRED) {
+        console.error('INVITATION_STATUS_EXPIRED')
+        // Hide accept/decline buttons
+        hideAcceptDeclineButtons()
+      }
+    })
 
     //===============================================
     // ACCEPT OR DECLINE
     //===============================================
     // Display accept/decline buttons
-    showAcceptDeclineButtons();
+    showAcceptDeclineButtons()
 
     // Add listeners
-    $("#accept").on('click' , function () {
-        //==============================
-        // ACCEPT CALL INVITATION
-        //==============================
-        if(invitation.getCallType()==='audio'){ //When receiving an audio call 
-            var answerOptions = {
-                mediaTypeForIncomingCall : 'AUDIO' //Answering with audio only.
-            }
-            invitation.accept(null, answerOptions)
-                .then(function (call) {
-                    setCallListeners(call);
-                    addHangupButton(call.getId());
-                });
-        } else { 
-            invitation.accept() //Answering with audio and video.
-            .then(function (call) {
-                setCallListeners(call);
-                addHangupButton(call.getId());
-            });
+    $('#accept').click(function () {
+      //==============================
+      // ACCEPT CALL INVITATION
+      //==============================
+      if (invitation.getCallType() == 'audio') {
+        //When receiving an audio call
+        var answerOptions = {
+          mediaTypeForIncomingCall: 'AUDIO', //Answering with audio only.
         }
-        // Hide accept/decline buttons
-        hideAcceptDeclineButtons();
-    });
-
-    $("#decline").on('click' , function () {
-        // Decline call invitation
-        invitation.decline();
-        // Hide accept/decline buttons
-        hideAcceptDeclineButtons();
-    });
-}
-
-//==============================
-// CREATE USER AGENT
-//==============================
-var ua = new UserAgent({
-    uri: 'apzkey:myDemoApiKey'
-});
-
-//==============================
-// REGISTER
-//==============================
-ua.register({
-    userAcceptOnIncomingScreenSharingCall : true
-}).then(function (session) {
-    // Save session
-    connectedSession = session;
-    setId(connectedSession.id)
-    console.log(connectedSession,"connectedSession.id");
-    // Display user number
-    // document.getElementById('my-number').innerHTML = 'Your number is ' + connectedSession.id;
-
-    connectedSession
-        .on("contactListUpdate", function (updatedContacts) { //display a list of connected users
-            console.log("MAIN - contactListUpdate", updatedContacts);
-            updateAddressBook();
+        invitation.accept(null, answerOptions).then(function (call) {
+          setCallListeners(call)
+          addHangupButton(call.getId())
         })
-        //==============================
-        // WHEN A CONTACT CALLS ME
-        //==============================
-        .on('incomingCall', function (invitation) {
-            callInvitationProcess(invitation);
-            console.log(invitation, 'invite')
-        })
-        .on("incomingScreenSharingCall", function (call) { //When client receives an screenSharing call from another user
-            console.log("screenSharing received from :", call.getContact().id);
-            setCallListeners(call);
-            addHangupButton(call.getId());
-        })
-        .on("incomingScreenSharingCallInvitation", function (invitation) { //When client receives an screenSharing call from another user
-            console.log("incomingScreenSharingCallInvitation ");
-            callInvitationProcess(invitation);
-            console.log(invitation, 'invite')
+      } else {
+        invitation
+          .accept() //Answering with audio and video.
+          .then(function (call) {
+            setCallListeners(call)
+            addHangupButton(call.getId())
+          })
+      }
+      // Hide accept/decline buttons
+      hideAcceptDeclineButtons()
+    })
 
-        });
+    $('#decline').click(function () {
+      // Decline call invitation
+      invitation.decline()
+      // Hide accept/decline buttons
+      hideAcceptDeclineButtons()
+    })
+  }
 
-}).catch(function (error) {
-    // error
-    console.error('User agent registration failed', error);
-});
+  function updateAddressBook(session) {
+    console.log('updateAddressBook')
 
-function hangupCall(callId) {
-    console.log("hangupCall :", callId);
-    $('#hangup-' + callId).remove();
+    //var contactListArray = connectedSession.getContactsArray(),
+    var contactListArray = session.getOnlineContactsArray(), //Get online contacts
+      i = 0
+
+    console.log('contactListArray :', contactListArray)
+
+    //Cleaning addressBook list
+    $('#addressBookDropDown').empty()
+
+    for (i = 0; i < contactListArray.length; i += 1) {
+      var user = contactListArray[i]
+      console.log('userId :', user.getId())
+      //Checking if connectedUser is not current user befire adding in addressBook list
+      if (user.getId() !== session.apiCCId) {
+        $('#addressBookDropDown').append(
+          '<li><a href="#" onclick="selectPhonebookItem(' +
+            user.getId() +
+            ')">' +
+            user.getId() +
+            '</a></li>',
+        )
+      }
+    }
+  }
+
+  function hangupCall(callId) {
+    console.log('hangupCall :', callId)
+    $('#hangup-' + callId).remove()
     //Getting call from ApiRTC call lists
-    var call = connectedSession.getCall(callId);
-    call.hangUp();
-}
+    var call = connectedSession.getCall(callId)
+    call.hangUp()
+  }
 
-function releaseStream(streamId) {
-    console.log("releaseStream :", streamId);
-    $('#relstream-' + streamId).remove();
-    var stream = ua.Stream.getStream(streamId);
-    stream.release();
-}
+  function releaseStream(streamId) {
+    console.log('releaseStream :', streamId)
+    $('#relstream-' + streamId).remove()
+    var stream = apiRTC.Stream.getStream(streamId)
+    stream.release()
+  }
 
-function addHangupButton(callId) {
-    $("#hangupButtons").append('<input id="hangup-' + callId + '" class="btn btn-danger" type="button" value="Hangup-' + callId + '" onclick="hangupCall(' + callId + ')" />');
-}
+  function addHangupButton(callId) {
+    $('#hangupButtons').append(
+      '<input id="hangup-' +
+        callId +
+        '" class="btn btn-danger" type="button" value="Hangup-' +
+        callId +
+        '" onclick="hangupCall(' +
+        callId +
+        ')" />',
+    )
+  }
 
-function addReleaseStreamButton(streamId) {
-    $("#streamButtons").append('<input id="relstream-' + streamId + '" class="btn btn-info" type="button" value="relstream-' + streamId + '" onclick="releaseStream(' + streamId + ')" />');
-}
+  function addReleaseStreamButton(streamId) {
+    $('#streamButtons').append(
+      '<input id="relstream-' +
+        streamId +
+        '" class="btn btn-info" type="button" value="relstream-' +
+        streamId +
+        '" onclick="releaseStream(' +
+        streamId +
+        ')" />',
+    )
+  }
 
-//Audio Call establishment
-$("#callAudio").on('click' , function () {
-    var contact = connectedSession.getOrCreateContact($("#number").val());
+  //Audio Call establishment
+  $('#callAudio').click(function () {
+    var contact = connectedSession.getOrCreateContact($('#number').val())
     var callOptions = {
-        mediaTypeForOutgoingCall : 'AUDIO'
-    };
-    var call = contact.call(null, callOptions);
+      mediaTypeForOutgoingCall: 'AUDIO',
+    }
+    var call = contact.call(null, callOptions)
     if (call !== null) {
-        setCallListeners(call);
-        addHangupButton(call.getId());
+      setCallListeners(call)
+      addHangupButton(call.getId())
     } else {
-        console.warn("Cannot establish call");
+      console.warn('Cannot establish call')
     }
-});
+  })
 
-//Call establishment
-$("#callVideo").on('click' , function () {
-    var contact = connectedSession.getOrCreateContact($("#number").val());
-    var call = contact.call();
+  //Call establishment
+  $('#callVideo').click(function () {
+    var contact = connectedSession.getOrCreateContact($('#number').val())
+    var call = contact.call()
     if (call !== null) {
-        setCallListeners(call);
-        addHangupButton(call.getId());
+      setCallListeners(call)
+      addHangupButton(call.getId())
     } else {
-        console.warn("Cannot establish call");
+      console.warn('Cannot establish call')
     }
-});
+  })
 
-//ScreenSharing establishment
-$("#shareScreen").on('click' , function () {
-    console.log('MAIN - Click screenCall');
-    var contact = connectedSession.getOrCreateContact($("#number").val());
-    var callConfiguration = {};
+  //ScreenSharing establishment
+  $('#shareScreen').click(function () {
+    console.log('MAIN - Click screenCall')
+    var contact = connectedSession.getOrCreateContact($('#number').val())
+    var callConfiguration = {}
 
-    if (ua.browser === 'Firefox') {
-        callConfiguration.captureSourceType = "screen";
+    if (apiRTC.browser === 'Firefox') {
+      callConfiguration.captureSourceType = 'screen'
     } else {
-        //Chrome
-        callConfiguration.captureSourceType = ["screen", "window", "tab", "audio"];
+      //Chrome
+      callConfiguration.captureSourceType = ['screen', 'window', 'tab', 'audio']
     }
 
-    var call = contact.shareScreen(callConfiguration);
+    var call = contact.shareScreen(callConfiguration)
     if (call !== null) {
-        setCallListeners(call);
-        addHangupButton(call.getId());
+      setCallListeners(call)
+      addHangupButton(call.getId())
     } else {
-        console.warn("Cannot establish call");
+      console.warn('Cannot establish call')
     }
-});
+  })
 
   return (
     <div>
-      <Container fluid className="py-5" style={{ backgroundColor: "#eee" }}>
+      <Container fluid className="py-5" style={{ backgroundColor: '#eee' }}>
         <Row>
           <Col md="6" lg="5" xl="4" sm="12" className="mb-4 mb-md-0 ">
             <div
               className="members position-fixed"
               style={{
-                display: w <= 414 ? (show ? "none" : "block") : "block",
+                display: w <= 414 ? (show ? 'none' : 'block') : 'block',
               }}
             >
               <Card>
@@ -420,10 +439,10 @@ $("#shareScreen").on('click' , function () {
                     </li>
                     <li
                       className="p-2"
-                      style={{ backgroundColor: "#eee" }}
+                      style={{ backgroundColor: '#eee' }}
                       onClick={() => {
-                        setShow(!show);
-                        saveData({ name: "Lee min hoo", img: avatar1 });
+                        setShow(!show)
+                        saveData({ name: 'Lee min hoo', img: avatar1 })
                       }}
                     >
                       <a
@@ -436,7 +455,6 @@ $("#shareScreen").on('click' , function () {
                               src={avatar1}
                               alt="avatar"
                               className="rounded-circle d-flex align-self-center me-3 shadow-1-strong"
-                              
                             />
                           </div>
                           <div className="user-name">
@@ -456,8 +474,8 @@ $("#shareScreen").on('click' , function () {
                     <li
                       className="p-2"
                       onClick={() => {
-                        setShow(!show);
-                        saveData({ name: "ShadabKhan", img: avatar2 });
+                        setShow(!show)
+                        saveData({ name: 'ShadabKhan', img: avatar2 })
                       }}
                     >
                       <a
@@ -497,7 +515,7 @@ $("#shareScreen").on('click' , function () {
             <div
               className="user-chat position-fixed"
               style={{
-                display: w <= 414 ? (show ? "block" : "none") : "block",
+                display: w <= 414 ? (show ? 'block' : 'none') : 'block',
               }}
             >
               <ListGroupItem>
@@ -508,7 +526,7 @@ $("#shareScreen").on('click' , function () {
                   >
                     <Button
                       style={{
-                        display: w <= 414 ? (show ? "block" : "none") : "none",
+                        display: w <= 414 ? (show ? 'block' : 'none') : 'none',
                       }}
                       onClick={() => setShow(!show)}
                       className="left-btn"
@@ -532,7 +550,7 @@ $("#shareScreen").on('click' , function () {
                     </div>
                     <div className="online">
                       <span className="feature1">
-                        <Button onClick={handleShow2} >
+                        <Button onClick={handleShow2}>
                           <BsTelephone />
                         </Button>
                       </span>
@@ -889,7 +907,7 @@ $("#shareScreen").on('click' , function () {
                         placeholder="Type your message here"
                       />
                       <InputGroup.Text>
-                        <Button color="" rounded className="float-end">
+                        <Button color="" rounded="true" className="float-end">
                           <GrSend />
                         </Button>
                       </InputGroup.Text>
@@ -909,7 +927,7 @@ $("#shareScreen").on('click' , function () {
         </Modal.Header>
         <Modal.Body>
           <>
-          {/* <legend id="my-number"></legend>
+            {/* <legend id="my-number"></legend>
         <div className="row position-absolute">
             <div id="remote-container" className="w-100 bg-dark" >
             </div>
@@ -917,80 +935,103 @@ $("#shareScreen").on('click' , function () {
             </div>
         </div> */}
             <div className="video-container">
-            <p id="my-number">{id}</p>
+              <p id="my-number">{id}</p>
 
               <div className="video my-video bg-dark">
-              <div id="remote-container" className="w-100 bg-dark" >
-            </div>
+                <div id="remote-container" className="w-100 bg-dark"></div>
               </div>
               <div className="video user-video bg-danger">
-              <div id="local-container" className="bg-danger">
-            </div>
+                <div id="local-container" className="bg-danger"></div>
               </div>
             </div>
             {/* <div className="myId">
             </div> */}
-         
           </>
         </Modal.Body>
-   
       </Modal>
 
-           {/* Modal Audio */}
-           <Modal show={showModal2} onHide={handleClose2}>
+      {/* Modal Audio */}
+      <Modal show={showModal2} onHide={handleClose2}>
         <Modal.Header closeButton>
           <Modal.Title>Audio Calling</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-         
-    {/* <!-- Begin page content --> */}
-    <main role="main" className="container">
-
-
-        <div className="input-group">
-            <span className="input-group-btn">
-                <button type="button" id="addressBook" data-toggle="dropdown" className="btn btn-success dropdown-toggle">
-                <span className="fa fa-address-book" aria-hidden="true"></span>
+          {/* <!-- Begin page content --> */}
+          <main role="main" className="container">
+            <div className="input-group">
+              <span className="input-group-btn">
+                <button
+                  type="button"
+                  id="addressBook"
+                  data-toggle="dropdown"
+                  className="btn btn-success dropdown-toggle"
+                >
+                  <span
+                    className="fa fa-address-book"
+                    aria-hidden="true"
+                  ></span>
                 </button>
                 <ul className="dropdown-menu" id="addressBookDropDown">
-                    <li><a id="client1" href="#">No other connected users</a></li>
+                  <li>
+                    <a id="client1" href="#">
+                      No other connected users
+                    </a>
+                  </li>
                 </ul>
-            </span>
-            <input type="text" id="number" onChange={(e) => console.log(e)} className="form-control" placeholder="Username" aria-describedby="sizing-addon1"/>
-            <span className="input-group-btn">
-                <button type="button" id="callAudio" className="btn btn-success">
-                    <BsTelephone/>  
+              </span>
+              <input
+                type="text"
+                id="number"
+                onChange={(e) => console.log(e)}
+                className="form-control"
+                placeholder="Username"
+                aria-describedby="sizing-addon1"
+              />
+              <span className="input-group-btn">
+                <button
+                  type="button"
+                  id="callAudio"
+                  className="btn btn-success"
+                >
+                  <BsTelephone />
                 </button>
-                <button type="button" id="callVideo" className="btn btn-success">
-                <BsCameraVideo/>
+                <button
+                  type="button"
+                  id="callVideo"
+                  className="btn btn-success"
+                >
+                  <BsCameraVideo />
                 </button>
-                <button type="button" id="shareScreen" className="btn btn-success">
-                   <FaDesktop/>
+                <button
+                  type="button"
+                  id="shareScreen"
+                  className="btn btn-success"
+                >
+                  <FaDesktop />
                 </button>
-            </span>
-        </div>
+              </span>
+            </div>
 
-        <button type="button" id="accept" className="btn btn-success">Accept call</button>
-        <button type="button" id="decline" className="btn btn-danger">Decline call</button>
+            <button type="button" id="accept" className="btn btn-success">
+              Accept call
+            </button>
+            <button type="button" id="decline" className="btn btn-danger">
+              Decline call
+            </button>
 
-        <div className="row position:absolute">
-            <div id="hangupButtons">
+            <div className="row position:absolute">
+              <div id="hangupButtons"></div>
             </div>
-        </div>
-        <div className="row position:absolute">
-            <div id="streamButtons">
+            <div className="row position:absolute">
+              <div id="streamButtons"></div>
             </div>
-        </div>
-        <p id="my-number">Your ID: {id}</p>
-        <div className="row position:absolute">
-            <div id="remote-container w-100">
+            <p id="my-number">Your ID: {id}</p>
+            <div className="row position:absolute">
+              <div id="remote-container w-100"></div>
+              <div id="local-container"></div>
             </div>
-            <div id="local-container">
-            </div>
-        </div>
-    </main>
+          </main>
         </Modal.Body>
-   
       </Modal>
     </div>
   )
